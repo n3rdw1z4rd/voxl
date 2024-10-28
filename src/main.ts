@@ -1,2 +1,2 @@
 import './css';
-import './test1';
+import './voxels';

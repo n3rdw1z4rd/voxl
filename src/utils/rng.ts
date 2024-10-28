@@ -2,12 +2,8 @@ export class Rng {
     private _seed: number = Date.now();
     private _uid_characters: string = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
-    constructor(seed?: number) {
+    constructor() {
         this._uid_characters = this.shuffle(this._uid_characters) as string;
-
-        if (seed != undefined) {
-            this._seed = seed;
-        }
     }
 
     public get seed(): number {
