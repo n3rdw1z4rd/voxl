@@ -12,17 +12,13 @@ const clock = new Clock();
 const renderer = new Renderer({ parent: document.getElementById('app')! });
 const { gl } = renderer;
 
-gl.clearColor(0.1, 0.1, 0.1, 1.0);
-gl.enable(gl.CULL_FACE);
-gl.enable(gl.DEPTH_TEST);
-gl.cullFace(gl.BACK);
-
 const programInfo: ProgramInfo = Renderer.CreateProgramInfo(gl, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE);
 const world = new World(gl, programInfo);
 
+const voxelMatrix = mat4.create();
+
 const projectionMatrix = mat4.create();
 const modelViewMatrix = mat4.create();
-const voxelMatrix = mat4.create();
 
 mat4.perspective(projectionMatrix, Math.PI / 4, renderer.width / renderer.height, 0.1, 1000.0);
 

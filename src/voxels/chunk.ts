@@ -1,11 +1,11 @@
+import { vec3 } from 'gl-matrix';
 import { ProgramInfo, rng, SimplexNoise } from '../utils';
 import { VOXEL_VERTICES } from './constants';
 
-export type Position = [number, number, number];
 export type Color = [number, number, number, number];
 
 export type Voxel = {
-    position: Position;
+    position: vec3;
     color: Color;
 };
 
@@ -31,7 +31,7 @@ export class Chunk {
         for (let x = 0; x < Chunk.SIZE; x++) {
             for (let y = 0; y < Chunk.HEIGHT; y++) {
                 for (let z = 0; z < Chunk.SIZE; z++) {
-                    const position: Position = [x, y, z];
+                    const position: vec3 = vec3.fromValues(x, y, z);
 
                     const color: Color = [
                         rng.nextf,

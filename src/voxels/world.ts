@@ -39,13 +39,8 @@ export class World {
     renderChunk(chunk: Chunk) {
         if (!chunk.mesh) return;
 
-        // Bind the mesh's vertex array object
         this.gl.bindVertexArray(chunk.mesh.vao);
-
-        // Draw the mesh
         this.gl.drawElements(this.gl.TRIANGLES, chunk.mesh.indexCount, this.gl.UNSIGNED_SHORT, 0);
-
-        // Unbind the vertex array object
         this.gl.bindVertexArray(null);
     }
 }

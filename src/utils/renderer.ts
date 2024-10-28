@@ -9,9 +9,12 @@ export type ProgramLocations = { attributes: KeyValue, uniforms: KeyValue };
 export type ProgramInfo = { program: WebGLProgram, attributes: KeyValue, uniforms: KeyValue };
 export type Color = [number, number, number, number];
 
+const DEFAULT_CLEAR_COLOR: Color = [0.1, 0.1, 0.1, 1.0];
+
 export interface RendererParams {
     canvas?: HTMLCanvasElement,
     parent?: HTMLElement,
+    clearColor?: Color,
 }
 
 export class Renderer {
@@ -21,7 +24,7 @@ export class Renderer {
     public get width(): number { return this.gl.canvas.width; }
     public get height(): number { return this.gl.canvas.height; }
 
-    constructor({ canvas, parent }: RendererParams) {
+    constructor({ canvas, parent, clearColor }: RendererParams = {}) {
         canvas = canvas ?? document.createElement('canvas') as HTMLCanvasElement;
 
         this.gl = canvas.getContext('webgl2') as GL;
@@ -33,6 +36,15 @@ export class Renderer {
         if (parent) {
             this.appendTo(parent);
         }
+
+        this.gl.clearColor(...(clearColor ?? DEFAULT_CLEAR_COLOR));
+        this.gl.enable(this.gl.CULL_FACE);
+        this.gl.enable(this.gl.DEPTH_TEST);
+        this.gl.cullFace(this.gl.BACK);
+    }
+
+    public clear() {
+        this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
     }
 
     public appendTo(htmlElement?: HTMLElement, autoResize: boolean = true) {
