@@ -278,16 +278,4 @@ export class ECS {
         this._systems.forEach((_: ECSSystem, uid: string) => this.runSystem(uid));
         this._onTickEndCallbacks.forEach((cb: ECSTickCallback) => cb());
     }
-
-    public static get instance(): ECS {
-        if (!ECS._instance) {
-            ECS._instance = new ECS();
-        }
-
-        return ECS._instance;
-    }
-
-    private static _instance: ECS;
-
-    private constructor() { }
 }

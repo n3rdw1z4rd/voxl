@@ -1,80 +1,80 @@
-import { mat4 } from 'gl-matrix';
-import { Clock, ProgramInfo, Renderer, rng } from '../utils';
+import { mat4, vec3 } from 'gl-matrix';
+import { Clock, ProgramInfo, Renderer, rng, UserInput } from '../utils';
 import { FRAGMENT_SHADER_SOURCE, VERTEX_SHADER_SOURCE, VOXEL_VERTICES } from './constants';
 import { World } from './world';
 import { Chunk } from './chunk';
+import { Camera } from './camera';
 
 const SEED: number = 42;
 
 rng.seed = SEED;
 
 const clock = new Clock();
+const input = new UserInput();
 const renderer = new Renderer({ parent: document.getElementById('app')! });
 const { gl } = renderer;
 
 const programInfo: ProgramInfo = Renderer.CreateProgramInfo(gl, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE);
 const world = new World(gl, programInfo);
 
-const voxelMatrix = mat4.create();
-
-const projectionMatrix = mat4.create();
-const modelViewMatrix = mat4.create();
-
-mat4.perspective(projectionMatrix, Math.PI / 4, renderer.width / renderer.height, 0.1, 1000.0);
-
-let cameraDistance = 100;
-let rotationX = 0;
-let rotationY = 0;
-let panX = 0;
-let panY = 0;
+const camera = new Camera();
+camera.distance = 100;
 
 let isDragging = false;
 let lastMouseX = 0;
 let lastMouseY = 0;
 
-renderer.canvas.addEventListener('mousedown', (e) => {
+input.on('mouseDown', (e) => {
     isDragging = true;
     lastMouseX = e.clientX;
     lastMouseY = e.clientY;
 });
 
-renderer.canvas.addEventListener('mouseup', () => {
+input.on('mouseUp', () => {
     isDragging = false;
 });
 
-renderer.canvas.addEventListener('mousemove', (e) => {
+input.on('mouseMove', (e) => {
     if (isDragging) {
         const deltaX = e.clientX - lastMouseX;
         const deltaY = e.clientY - lastMouseY;
-        rotationX += deltaY * 0.005;
-        rotationY += deltaX * 0.005;
+
+        camera.rotation[0] += deltaY * 0.005;
+        camera.rotation[1] += deltaX * 0.005;
+
         lastMouseX = e.clientX;
         lastMouseY = e.clientY;
     }
 });
 
-renderer.canvas.addEventListener('wheel', (e) => {
-    cameraDistance += e.deltaY * 0.05;
-    cameraDistance = Math.max(2, Math.min(1000, cameraDistance));
+input.on('wheel', (e) => {
+    camera.distance = Math.max(2, Math.min(1000, camera.distance + (e.deltaY * 0.05)));
 });
 
-window.addEventListener('keydown', (e) => {
+input.on('keyDown', (e) => {
     const panSpeed = 0.1;
     switch (e.key) {
         case 'w':
-            panY += panSpeed;
+            camera.position[1] += panSpeed;
             break;
         case 's':
-            panY -= panSpeed;
+            camera.position[1] -= panSpeed;
             break;
         case 'a':
-            panX -= panSpeed;
+            camera.position[0] -= panSpeed;
             break;
         case 'd':
-            panX += panSpeed;
+            camera.position[0] += panSpeed;
             break;
     }
 });
+
+
+const voxelMatrix = mat4.create();
+
+const projectionMatrix = mat4.create();
+const modelViewMatrix = mat4.create();
+mat4.perspective(projectionMatrix, Math.PI / 4, renderer.width / renderer.height, 0.1, 1000.0);
 
 const projectionMatrixLocation = programInfo.uniforms['projectionMatrix'];
 const modelViewMatrixLocation = programInfo.uniforms['modelViewMatrix'];
@@ -86,10 +86,9 @@ clock.run((_deltaTime: number) => {
     gl.useProgram(programInfo.program);
 
     mat4.identity(modelViewMatrix);
-    mat4.translate(modelViewMatrix, modelViewMatrix, [panX, panY, -cameraDistance]);
-    mat4.rotateX(modelViewMatrix, modelViewMatrix, rotationX);
-    mat4.rotateY(modelViewMatrix, modelViewMatrix, rotationY);
-
+    mat4.translate(modelViewMatrix, modelViewMatrix, [camera.position[0], camera.position[1], -camera.distance]);
+    mat4.rotateX(modelViewMatrix, modelViewMatrix, camera.rotation[0]);
+    mat4.rotateY(modelViewMatrix, modelViewMatrix, camera.rotation[1]);
     gl.uniformMatrix4fv(projectionMatrixLocation, false, projectionMatrix);
 
     for (const voxel of world.getChunk(0, 0, 0).voxels) {
@@ -105,8 +104,8 @@ clock.run((_deltaTime: number) => {
     clock.showStats({
         seed: SEED,
         chunk: `${Chunk.SIZE} (${Math.pow(Chunk.SIZE, 2) * Chunk.HEIGHT})`,
-        dolly: cameraDistance.toFixed(0),
-        pan: `${panX.toFixed(1)} x ${panY.toFixed(1)}`,
-        rotation: `${rotationX.toFixed(1)} x ${rotationY.toFixed(1)}`,
+        dolly: camera.distance.toFixed(0),
+        pan: `${camera.position[0].toFixed(1)} x ${camera.position[1].toFixed(1)}`,
+        rotation: `${camera.rotation[0].toFixed(1)} x ${camera.rotation[1].toFixed(1)}`,
     });
 });

@@ -60,9 +60,9 @@ export class Rng {
 
     public shuffle(value: Array<any> | string): Array<any> | string {
         if (Array.isArray(value)) {
-            return value.sort((a, b) => (0.5 - this.nextf));
+            return value.sort(() => (0.5 - this.nextf));
         } else {
-            return value.split('').sort((a, b) => (0.5 - this.nextf)).join('');
+            return value.split('').sort(() => (0.5 - this.nextf)).join('');
         }
     }
 
