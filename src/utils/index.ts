@@ -4,4 +4,5 @@ export * from './emitter';
 export * from './logger';
 export * from './renderer';
 export * from './rng';
-export * from './simplex-noise'
+export * from './simplex-noise';
+export * from './user-input';
