@@ -21,6 +21,8 @@ export class Camera extends Transform {
     public projectionMatrix: mat4 = mat4.create();
     public modelViewMatrix: mat4 = mat4.create();
 
+    private projectionNeedsUpdate: boolean = true;
+
     constructor(
         public fov: number = DEFAULT_FOV,
         public aspect: number = DEFAULT_ASPECT,
@@ -31,8 +33,16 @@ export class Camera extends Transform {
     }
 
     public update() {
-        mat4.perspective(this.projectionMatrix, this.fov * (Math.PI / 180), this.aspect, this.near, this.far);
+        if (this.projectionNeedsUpdate) {
+            mat4.perspective(this.projectionMatrix, this.fov * (Math.PI / 180), this.aspect, this.near, this.far);
+            this.projectionNeedsUpdate = false;
+        }
         this.calculateViewMatrix();
+    }
+
+    public setAspectRatio(aspect: number) {
+        this.aspect = aspect;
+        this.projectionNeedsUpdate = true;
     }
 
     private calculateViewMatrix() {
@@ -122,10 +132,14 @@ const voxelColorLocation = programInfo.uniforms['voxelColor'];
 
 clock.run((_deltaTime: number) => {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    if (renderer.resize()) {
+        camera.setAspectRatio(window.innerWidth / window.innerHeight);
+    }
+
     gl.useProgram(programInfo.program);
 
     camera.update();
-    
     gl.uniformMatrix4fv(projectionMatrixLocation, false, camera.projectionMatrix);
     gl.uniformMatrix4fv(modelViewMatrixLocation, false, camera.modelViewMatrix);
 
