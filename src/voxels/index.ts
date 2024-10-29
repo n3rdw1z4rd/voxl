@@ -29,9 +29,8 @@ export class Camera extends Transform {
     public target: vec3 = vec3.create();
     public distance: number = 1.0;
     public projectionMatrix: mat4 = mat4.create();
-
-    private projectionNeedsUpdate = true;
     private viewMatrix: mat4 = mat4.create();
+    private projectionNeedsUpdate = true;
 
     constructor(
         public fov: number = DEFAULT_FOV,
@@ -56,10 +55,16 @@ export class Camera extends Transform {
     }
 
     private calculateViewMatrix() {
-        // Update model matrix with position and rotation
+        const forward = vec3.create();
+        vec3.sub(forward, this.target, this.position);
+        vec3.normalize(forward, forward);
+
+        const offsetPosition = vec3.create();
+        vec3.scaleAndAdd(offsetPosition, this.target, forward, -this.distance);
+        vec3.copy(this.position, offsetPosition);
+
         this.updateModelMatrix();
 
-        // Invert the model matrix to create the view matrix
         mat4.invert(this.viewMatrix, this.modelMatrix);
     }
 
