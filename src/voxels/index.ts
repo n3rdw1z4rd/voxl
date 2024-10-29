@@ -8,6 +8,16 @@ export class Transform {
     public position: vec3 = vec3.create();
     public rotation: vec3 = vec3.create();
     public scale: vec3 = vec3.fromValues(1, 1, 1);
+    public modelMatrix: mat4 = mat4.create();
+
+    public updateModelMatrix() {
+        mat4.identity(this.modelMatrix);
+        mat4.translate(this.modelMatrix, this.modelMatrix, this.position);
+        mat4.rotateX(this.modelMatrix, this.modelMatrix, this.rotation[0]);
+        mat4.rotateY(this.modelMatrix, this.modelMatrix, this.rotation[1]);
+        mat4.rotateZ(this.modelMatrix, this.modelMatrix, this.rotation[2]);
+        mat4.scale(this.modelMatrix, this.modelMatrix, this.scale);
+    }
 }
 
 const DEFAULT_FOV: number = 75.0;
@@ -19,9 +29,9 @@ export class Camera extends Transform {
     public target: vec3 = vec3.create();
     public distance: number = 1.0;
     public projectionMatrix: mat4 = mat4.create();
-    public modelViewMatrix: mat4 = mat4.create();
 
-    private projectionNeedsUpdate: boolean = true;
+    private projectionNeedsUpdate = true;
+    private viewMatrix: mat4 = mat4.create();
 
     constructor(
         public fov: number = DEFAULT_FOV,
@@ -46,17 +56,15 @@ export class Camera extends Transform {
     }
 
     private calculateViewMatrix() {
-        const rotationMatrix = mat4.create();
-        mat4.rotateX(rotationMatrix, rotationMatrix, this.rotation[0]);
-        mat4.rotateY(rotationMatrix, rotationMatrix, this.rotation[1]);
+        // Update model matrix with position and rotation
+        this.updateModelMatrix();
 
-        const forward = vec3.create();
-        vec3.transformMat4(forward, [0, 0, -1], rotationMatrix);
+        // Invert the model matrix to create the view matrix
+        mat4.invert(this.viewMatrix, this.modelMatrix);
+    }
 
-        const position = vec3.create();
-        vec3.scaleAndAdd(position, this.target, forward, -this.distance);
-
-        mat4.lookAt(this.modelViewMatrix, position, this.target, [0, 1, 0]);
+    public getViewMatrix(): mat4 {
+        return this.viewMatrix;
     }
 }
 
@@ -95,7 +103,7 @@ input.on('mouseMove', (e) => {
         const deltaX = e.clientX - lastMouseX;
         const deltaY = e.clientY - lastMouseY;
 
-        camera.rotation[0] -= deltaY * 0.005;
+        camera.rotation[0] += deltaY * 0.005;
         camera.rotation[1] -= deltaX * 0.005;
 
         lastMouseX = e.clientX;
@@ -141,13 +149,13 @@ clock.run((_deltaTime: number) => {
 
     camera.update();
     gl.uniformMatrix4fv(projectionMatrixLocation, false, camera.projectionMatrix);
-    gl.uniformMatrix4fv(modelViewMatrixLocation, false, camera.modelViewMatrix);
+    gl.uniformMatrix4fv(modelViewMatrixLocation, false, camera.getViewMatrix());
 
     for (const voxel of world.getChunk(0, 0, 0).voxels) {
         gl.uniform4fv(voxelColorLocation, voxel.color);
 
         mat4.identity(voxelMatrix);
-        mat4.translate(voxelMatrix, camera.modelViewMatrix, voxel.position);
+        mat4.translate(voxelMatrix, camera.getViewMatrix(), voxel.position);
         gl.uniformMatrix4fv(modelViewMatrixLocation, false, voxelMatrix);
 
         gl.drawArrays(gl.TRIANGLES, 0, VOXEL_VERTICES.length / 3);
