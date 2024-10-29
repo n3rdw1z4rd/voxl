@@ -3,7 +3,52 @@ import { Clock, ProgramInfo, Renderer, rng, UserInput } from '../utils';
 import { FRAGMENT_SHADER_SOURCE, VERTEX_SHADER_SOURCE, VOXEL_VERTICES } from './constants';
 import { World } from './world';
 import { Chunk } from './chunk';
-import { Camera } from './camera';
+
+export class Transform {
+    public position: vec3 = vec3.create();
+    public rotation: vec3 = vec3.create();
+    public scale: vec3 = vec3.fromValues(1, 1, 1);
+}
+
+const DEFAULT_FOV: number = 75.0;
+const DEFAULT_ASPECT: number = (window.innerWidth / window.innerHeight);
+const DEFAULT_NEAR: number = 0.1;
+const DEFAULT_FAR: number = 1000;
+
+export class Camera extends Transform {
+    public target: vec3 = vec3.create();
+    public distance: number = 1.0;
+    public projectionMatrix: mat4 = mat4.create();
+    public modelViewMatrix: mat4 = mat4.create();
+
+    constructor(
+        public fov: number = DEFAULT_FOV,
+        public aspect: number = DEFAULT_ASPECT,
+        public near: number = DEFAULT_NEAR,
+        public far: number = DEFAULT_FAR,
+    ) {
+        super();
+    }
+
+    public update() {
+        mat4.perspective(this.projectionMatrix, this.fov * (Math.PI / 180), this.aspect, this.near, this.far);
+        this.calculateViewMatrix();
+    }
+
+    private calculateViewMatrix() {
+        const rotationMatrix = mat4.create();
+        mat4.rotateX(rotationMatrix, rotationMatrix, this.rotation[0]);
+        mat4.rotateY(rotationMatrix, rotationMatrix, this.rotation[1]);
+
+        const forward = vec3.create();
+        vec3.transformMat4(forward, [0, 0, -1], rotationMatrix);
+
+        const position = vec3.create();
+        vec3.scaleAndAdd(position, this.target, forward, -this.distance);
+
+        mat4.lookAt(this.modelViewMatrix, position, this.target, [0, 1, 0]);
+    }
+}
 
 const SEED: number = 42;
 
@@ -19,6 +64,7 @@ const world = new World(gl, programInfo);
 
 const camera = new Camera();
 camera.distance = 100;
+camera.position = vec3.fromValues(0, 0, -camera.distance);
 
 let isDragging = false;
 let lastMouseX = 0;
@@ -39,8 +85,8 @@ input.on('mouseMove', (e) => {
         const deltaX = e.clientX - lastMouseX;
         const deltaY = e.clientY - lastMouseY;
 
-        camera.rotation[0] += deltaY * 0.005;
-        camera.rotation[1] += deltaX * 0.005;
+        camera.rotation[0] -= deltaY * 0.005;
+        camera.rotation[1] -= deltaX * 0.005;
 
         lastMouseX = e.clientX;
         lastMouseY = e.clientY;
@@ -69,33 +115,25 @@ input.on('keyDown', (e) => {
     }
 });
 
-
 const voxelMatrix = mat4.create();
-
-const projectionMatrix = mat4.create();
-const modelViewMatrix = mat4.create();
-mat4.perspective(projectionMatrix, Math.PI / 4, renderer.width / renderer.height, 0.1, 1000.0);
-
 const projectionMatrixLocation = programInfo.uniforms['projectionMatrix'];
 const modelViewMatrixLocation = programInfo.uniforms['modelViewMatrix'];
 const voxelColorLocation = programInfo.uniforms['voxelColor'];
 
 clock.run((_deltaTime: number) => {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
     gl.useProgram(programInfo.program);
 
-    mat4.identity(modelViewMatrix);
-    mat4.translate(modelViewMatrix, modelViewMatrix, [camera.position[0], camera.position[1], -camera.distance]);
-    mat4.rotateX(modelViewMatrix, modelViewMatrix, camera.rotation[0]);
-    mat4.rotateY(modelViewMatrix, modelViewMatrix, camera.rotation[1]);
-    gl.uniformMatrix4fv(projectionMatrixLocation, false, projectionMatrix);
+    camera.update();
+    
+    gl.uniformMatrix4fv(projectionMatrixLocation, false, camera.projectionMatrix);
+    gl.uniformMatrix4fv(modelViewMatrixLocation, false, camera.modelViewMatrix);
 
     for (const voxel of world.getChunk(0, 0, 0).voxels) {
         gl.uniform4fv(voxelColorLocation, voxel.color);
 
         mat4.identity(voxelMatrix);
-        mat4.translate(voxelMatrix, modelViewMatrix, voxel.position);
+        mat4.translate(voxelMatrix, camera.modelViewMatrix, voxel.position);
         gl.uniformMatrix4fv(modelViewMatrixLocation, false, voxelMatrix);
 
         gl.drawArrays(gl.TRIANGLES, 0, VOXEL_VERTICES.length / 3);
