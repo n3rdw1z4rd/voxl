@@ -37,12 +37,8 @@ export class Camera extends Transform {
     }
 
     private calculateViewMatrix() {
-        const rotationMatrix = mat4.create();
-        mat4.rotateX(rotationMatrix, rotationMatrix, this.rotation[0]);
-        mat4.rotateY(rotationMatrix, rotationMatrix, this.rotation[1]);
-
         const forward = vec3.create();
-        vec3.transformMat4(forward, [0, 0, -1], rotationMatrix);
+        vec3.transformQuat(forward, [0, 0, -1], this.rotation);
 
         const position = vec3.create();
         vec3.scaleAndAdd(position, this.target, forward, -this.distance);

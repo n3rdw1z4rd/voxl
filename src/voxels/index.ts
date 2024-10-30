@@ -40,8 +40,7 @@ input.on('mouseMove', (e) => {
         const deltaX = e.clientX - lastMouseX;
         const deltaY = e.clientY - lastMouseY;
 
-        camera.rotation[0] -= deltaY * 0.005;
-        camera.rotation[1] -= deltaX * 0.005;
+        camera.rotate(vec3.fromValues(deltaY * 0.005, deltaX * 0.005, 0));
 
         lastMouseX = e.clientX;
         lastMouseY = e.clientY;
@@ -56,16 +55,16 @@ input.on('keyDown', (e) => {
     const panSpeed = 0.1;
     switch (e.key) {
         case 'w':
-            camera.position[1] += panSpeed;
+            camera.translate(vec3.fromValues(0, panSpeed, 0));
             break;
         case 's':
-            camera.position[1] -= panSpeed;
+            camera.translate(vec3.fromValues(0, -panSpeed, 0));
             break;
         case 'a':
-            camera.position[0] -= panSpeed;
+            camera.translate(vec3.fromValues(-panSpeed, 0, 0));
             break;
         case 'd':
-            camera.position[0] += panSpeed;
+            camera.translate(vec3.fromValues(panSpeed, 0, 0));
             break;
     }
 });
