@@ -1,11 +1,18 @@
 import { vec2 } from 'gl-matrix';
 import { Emitter } from './emitter';
-import { log } from './logger';
+
+type KeyCombination = string[];
+
+interface KeyBinding {
+    combination: KeyCombination;
+    eventName: string;
+}
 
 export class UserInput extends Emitter {
     private _keyStates: { [key: string]: boolean } = {};
     private _buttonStates: { [key: string]: boolean } = {};
     private _mousePosition: vec2 = vec2.create();
+    private _keyBindings: KeyBinding[] = [];
 
     public get mousePosition(): vec2 { return this._mousePosition; }
 
@@ -28,10 +35,19 @@ export class UserInput extends Emitter {
         return this._buttonStates[button] ?? false;
     }
 
+    public addKeyBinding(combination: KeyCombination, eventName: string) {
+        this._keyBindings.push({ combination, eventName });
+    }
+
+    public removeKeyBinding(eventName: string) {
+        this._keyBindings = this._keyBindings.filter(binding => binding.eventName !== eventName);
+    }
+
     private onKeyDown(event: KeyboardEvent) {
         if (!this._keyStates[event.code]) {
             this._keyStates[event.code] = true;
             this.emit('keyDown', event);
+            this.checkKeyBindings();
         }
     }
 
@@ -39,6 +55,7 @@ export class UserInput extends Emitter {
         if (this._keyStates[event.code]) {
             this._keyStates[event.code] = false;
             this.emit('keyUp', event);
+            this.checkKeyBindings();
         }
     }
 
@@ -47,28 +64,29 @@ export class UserInput extends Emitter {
             clientX: posX,
             clientY: posY,
         } = event;
-
-        this._mousePosition[0] = posX;
-        this._mousePosition[1] = posY;
-
+        vec2.set(this._mousePosition, posX, posY);
         this.emit('mouseMove', event);
     }
 
     private onMouseDown(event: MouseEvent) {
-        if (!this._buttonStates[event.button]) {
-            this._buttonStates[event.button] = true;
-            this.emit('mouseDown', event);
-        }
+        this._buttonStates[event.button] = true;
+        this.emit('mouseDown', event);
     }
 
     private onMouseUp(event: MouseEvent) {
-        if (this._buttonStates[event.button]) {
-            this._buttonStates[event.button] = false;
-            this.emit('mouseUp', event);
-        }
+        this._buttonStates[event.button] = false;
+        this.emit('mouseUp', event);
     }
 
-    private onMouseWheel(event: MouseEvent) {
+    private onMouseWheel(event: WheelEvent) {
         this.emit('wheel', event);
+    }
+
+    private checkKeyBindings() {
+        for (const binding of this._keyBindings) {
+            if (binding.combination.every(key => this.isKeyDown(key))) {
+                this.emit(binding.eventName);
+            }
+        }
     }
 }
