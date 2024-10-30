@@ -20,6 +20,7 @@ const world = new World(gl, programInfo);
 const camera = new Camera();
 camera.distance = 100;
 camera.position = vec3.fromValues(0, 0, -camera.distance);
+camera.rotate(vec3.fromValues(0, Math.PI, 0));
 
 input.on('mouseMove', (e: MouseEvent) => {
     if (input.isButtonDown(0)) {
