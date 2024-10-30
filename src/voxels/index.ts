@@ -21,52 +21,17 @@ const camera = new Camera();
 camera.distance = 100;
 camera.position = vec3.fromValues(0, 0, -camera.distance);
 
-let isDragging = false;
-let lastMouseX = 0;
-let lastMouseY = 0;
-
-input.on('mouseDown', (e) => {
-    isDragging = true;
-    lastMouseX = e.clientX;
-    lastMouseY = e.clientY;
-});
-
-input.on('mouseUp', () => {
-    isDragging = false;
-});
-
-input.on('mouseMove', (e) => {
-    if (isDragging) {
-        const deltaX = e.clientX - lastMouseX;
-        const deltaY = e.clientY - lastMouseY;
+input.on('mouseMove', (e: MouseEvent) => {
+    if (input.isButtonDown(0)) {
+        const deltaX = e.movementX;
+        const deltaY = e.movementY;
 
         camera.rotate(vec3.fromValues(deltaY * 0.005, deltaX * 0.005, 0));
-
-        lastMouseX = e.clientX;
-        lastMouseY = e.clientY;
     }
 });
 
 input.on('wheel', (e) => {
     camera.distance = Math.max(2, Math.min(1000, camera.distance + (e.deltaY * 0.05)));
-});
-
-input.on('keyDown', (e) => {
-    const moveSpeed = 0.1;
-    switch (e.key) {
-        case 'w':
-            camera.move(vec3.fromValues(0, 0, -1), moveSpeed);
-            break;
-        case 's':
-            camera.move(vec3.fromValues(0, 0, 1), moveSpeed);
-            break;
-        case 'a':
-            camera.move(vec3.fromValues(-1, 0, 0), moveSpeed);
-            break;
-        case 'd':
-            camera.move(vec3.fromValues(1, 0, 0), moveSpeed);
-            break;
-    }
 });
 
 const voxelMatrix = mat4.create();
@@ -75,15 +40,21 @@ const modelViewMatrixLocation = programInfo.uniforms['modelViewMatrix'];
 const voxelColorLocation = programInfo.uniforms['voxelColor'];
 
 clock.run((_deltaTime: number) => {
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
     if (renderer.resize()) {
         camera.setAspectRatio(window.innerWidth / window.innerHeight);
     }
 
-    gl.useProgram(programInfo.program);
+    camera.move(vec3.fromValues(
+        (input.isKeyDown('KeyD') ? 1 : 0) + (input.isKeyDown('KeyA') ? -1 : 0),
+        0,
+        (input.isKeyDown('KeyW') ? -1 : 0) + (input.isKeyDown('KeyS') ? 1 : 0),
+    ), 2.0);
 
     camera.update();
+
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.useProgram(programInfo.program);
+
     gl.uniformMatrix4fv(projectionMatrixLocation, false, camera.projectionMatrix);
     gl.uniformMatrix4fv(modelViewMatrixLocation, false, camera.modelViewMatrix);
 
