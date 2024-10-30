@@ -1,4 +1,4 @@
-import { mat4, vec3, quat } from 'gl-matrix';
+import { mat4, vec3 } from 'gl-matrix';
 import { Transform } from './transform';
 
 const DEFAULT_FOV: number = 75.0;
