@@ -52,19 +52,19 @@ input.on('wheel', (e) => {
 });
 
 input.on('keyDown', (e) => {
-    const panSpeed = 0.1;
+    const moveSpeed = 0.1;
     switch (e.key) {
         case 'w':
-            camera.translate(vec3.fromValues(0, panSpeed, 0));
+            camera.move(vec3.fromValues(0, 0, -1), moveSpeed);
             break;
         case 's':
-            camera.translate(vec3.fromValues(0, -panSpeed, 0));
+            camera.move(vec3.fromValues(0, 0, 1), moveSpeed);
             break;
         case 'a':
-            camera.translate(vec3.fromValues(-panSpeed, 0, 0));
+            camera.move(vec3.fromValues(-1, 0, 0), moveSpeed);
             break;
         case 'd':
-            camera.translate(vec3.fromValues(panSpeed, 0, 0));
+            camera.move(vec3.fromValues(1, 0, 0), moveSpeed);
             break;
     }
 });

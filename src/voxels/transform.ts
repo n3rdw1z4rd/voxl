@@ -4,15 +4,18 @@ export class Transform {
     public position: vec3 = vec3.create();
     public rotation: quat = quat.create(); // Using quaternion for rotation
     public scale: vec3 = vec3.fromValues(1, 1, 1);
-    public modelMatrix: mat4 = mat4.create();
+    public localMatrix: mat4 = mat4.create();
+    public worldMatrix: mat4 = mat4.create();
+    public parent: Transform | null = null;
 
     constructor() {
-        this.updateModelMatrix();
+        this.updateLocalMatrix();
+        this.updateWorldMatrix();
     }
 
     public translate(translation: vec3) {
         vec3.add(this.position, this.position, translation);
-        this.updateModelMatrix();
+        this.updateLocalMatrix();
     }
 
     public rotate(rotation: vec3) {
@@ -28,19 +31,42 @@ export class Transform {
         quat.multiply(this.rotation, this.rotation, rotationQuatY);
         quat.multiply(this.rotation, this.rotation, rotationQuatZ);
 
-        this.updateModelMatrix();
+        this.updateLocalMatrix();
     }
 
     public scaleBy(factor: vec3) {
         vec3.multiply(this.scale, this.scale, factor);
-        this.updateModelMatrix();
+        this.updateLocalMatrix();
     }
 
-    public updateModelMatrix() {
-        mat4.fromRotationTranslationScale(this.modelMatrix, this.rotation, this.position, this.scale);
+    public updateLocalMatrix() {
+        mat4.fromRotationTranslationScale(this.localMatrix, this.rotation, this.position, this.scale);
+        this.updateWorldMatrix();
     }
 
-    public getModelMatrix(): mat4 {
-        return this.modelMatrix;
+    public updateWorldMatrix() {
+        if (this.parent) {
+            mat4.multiply(this.worldMatrix, this.parent.worldMatrix, this.localMatrix);
+        } else {
+            mat4.copy(this.worldMatrix, this.localMatrix);
+        }
+    }
+
+    public getWorldMatrix(): mat4 {
+        return this.worldMatrix;
+    }
+
+    public localToWorld(localPoint: vec3): vec3 {
+        const worldPoint = vec3.create();
+        vec3.transformMat4(worldPoint, localPoint, this.worldMatrix);
+        return worldPoint;
+    }
+
+    public worldToLocal(worldPoint: vec3): vec3 {
+        const localPoint = vec3.create();
+        const inverseWorldMatrix = mat4.create();
+        mat4.invert(inverseWorldMatrix, this.worldMatrix);
+        vec3.transformMat4(localPoint, worldPoint, inverseWorldMatrix);
+        return localPoint;
     }
 }

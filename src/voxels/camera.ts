@@ -1,4 +1,4 @@
-import { mat4, vec3 } from 'gl-matrix';
+import { mat4, vec3, quat } from 'gl-matrix';
 import { Transform } from './transform';
 
 const DEFAULT_FOV: number = 75.0;
@@ -41,8 +41,15 @@ export class Camera extends Transform {
         vec3.transformQuat(forward, [0, 0, -1], this.rotation);
 
         const position = vec3.create();
-        vec3.scaleAndAdd(position, this.target, forward, -this.distance);
+        vec3.scaleAndAdd(position, this.position, forward, -this.distance);
 
-        mat4.lookAt(this.modelViewMatrix, position, this.target, [0, 1, 0]);
+        mat4.lookAt(this.modelViewMatrix, position, this.position, [0, 1, 0]);
+    }
+
+    public move(direction: vec3, distance: number) {
+        const movement = vec3.create();
+        vec3.transformQuat(movement, direction, this.rotation);
+        vec3.scaleAndAdd(this.position, this.position, movement, distance);
+        this.updateLocalMatrix();
     }
 }
