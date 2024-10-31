@@ -6,6 +6,7 @@ import { Chunk } from './chunk';
 import { Camera } from './camera';
 
 const SEED: number = 42;
+const MOVE_SPEED: number = 0.1;
 
 rng.seed = SEED;
 
@@ -18,22 +19,17 @@ const programInfo: ProgramInfo = Renderer.CreateProgramInfo(gl, VERTEX_SHADER_SO
 const world = new World(gl, programInfo);
 
 const camera = new Camera();
-camera.distance = 100;
-camera.position = vec3.fromValues(0, 0, -camera.distance);
 camera.rotate(vec3.fromValues(0, Math.PI, 0));
 
 input.on('mouseMove', (e: MouseEvent) => {
     if (input.isButtonDown(0)) {
-        const deltaX = e.movementX;
-        const deltaY = e.movementY;
-
-        camera.rotate(vec3.fromValues(deltaY * 0.005, deltaX * 0.005, 0));
+        camera.rotate(vec3.fromValues(-e.movementY * 0.005, -e.movementX * 0.005, 0));
     }
 });
 
-input.on('wheel', (e) => {
-    camera.distance = Math.max(2, Math.min(1000, camera.distance + (e.deltaY * 0.05)));
-});
+// input.on('wheel', (e) => {
+//     camera.distance = Math.max(2, Math.min(1000, camera.distance + (e.deltaY * 0.05)));
+// });
 
 clock.run((_deltaTime: number) => {
     if (renderer.resize()) {
@@ -44,7 +40,7 @@ clock.run((_deltaTime: number) => {
         (input.isKeyDown('KeyD') ? 1 : 0) + (input.isKeyDown('KeyA') ? -1 : 0),
         0,
         (input.isKeyDown('KeyW') ? -1 : 0) + (input.isKeyDown('KeyS') ? 1 : 0),
-    ), 2.0);
+    ), MOVE_SPEED);
 
     camera.update();
     world.render(camera);
@@ -52,8 +48,8 @@ clock.run((_deltaTime: number) => {
     clock.showStats({
         seed: SEED,
         chunk: `${Chunk.SIZE} (${Math.pow(Chunk.SIZE, 2) * Chunk.HEIGHT})`,
-        dolly: camera.distance.toFixed(0),
-        pan: `${camera.position[0].toFixed(1)} x ${camera.position[1].toFixed(1)}`,
-        rotation: `${camera.rotation[0].toFixed(1)} x ${camera.rotation[1].toFixed(1)}`,
+        distance: camera.distance.toFixed(0),
+        position: `x: ${camera.position[0].toFixed(1)} y: ${camera.position[1].toFixed(1)} z: ${camera.position[2].toFixed(1)}`,
+        rotation: `x: ${camera.rotation[0].toFixed(1)} y: ${camera.rotation[1].toFixed(1)} z: ${camera.rotation[2].toFixed(1)}`,
     });
 });

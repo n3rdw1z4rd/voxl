@@ -1,5 +1,6 @@
 import { mat4, vec3 } from 'gl-matrix';
 import { Transform } from './transform';
+import { clamp } from '../utils';
 
 const DEFAULT_FOV: number = 75.0;
 const DEFAULT_ASPECT: number = (window.innerWidth / window.innerHeight);
@@ -9,6 +10,8 @@ const DEFAULT_FAR: number = 1000;
 export class Camera extends Transform {
     public target: vec3 = vec3.create();
     public distance: number = 1.0;
+    public minDistance: number = 0.1;
+    public maxDistance: number = 100.0;
     public projectionMatrix: mat4 = mat4.create();
     public modelViewMatrix: mat4 = mat4.create();
 
@@ -37,6 +40,8 @@ export class Camera extends Transform {
     }
 
     private calculateViewMatrix() {
+        this.distance = clamp(this.distance, this.minDistance, this.maxDistance);
+        
         const forward = vec3.create();
         vec3.transformQuat(forward, [0, 0, -1], this.rotation);
 
