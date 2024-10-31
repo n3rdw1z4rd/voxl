@@ -1,10 +1,6 @@
 import { mat4, vec3 } from 'gl-matrix';
-
-export class Transform {
-    public position: vec3 = vec3.create();
-    public rotation: vec3 = vec3.create();
-    public scale: vec3 = vec3.create();
-}
+import { Transform } from './transform';
+import { clamp } from '../utils';
 
 const DEFAULT_FOV: number = 75.0;
 const DEFAULT_ASPECT: number = (window.innerWidth / window.innerHeight);
@@ -13,9 +9,13 @@ const DEFAULT_FAR: number = 1000;
 
 export class Camera extends Transform {
     public target: vec3 = vec3.create();
-    public distance: number = 1.0; // distance away from target.
+    public minDistance: number = 0.1;
+    public maxDistance: number = 100.0;
+    public distance: number = this.minDistance;
     public projectionMatrix: mat4 = mat4.create();
     public modelViewMatrix: mat4 = mat4.create();
+
+    private projectionNeedsUpdate: boolean = true;
 
     constructor(
         public fov: number = DEFAULT_FOV,
@@ -27,29 +27,34 @@ export class Camera extends Transform {
     }
 
     public update() {
-        // Calculate view matrix based on target, position, and rotation.
+        if (this.projectionNeedsUpdate) {
+            mat4.perspective(this.projectionMatrix, this.fov * (Math.PI / 180), this.aspect, this.near, this.far);
+            this.projectionNeedsUpdate = false;
+        }
         this.calculateViewMatrix();
+    }
 
-        // Calculate projection matrix based on FOV, aspect ratio, near, and far planes.
-        mat4.perspective(this.projectionMatrix, this.fov * (Math.PI / 180), this.aspect, this.near, this.far);
+    public setAspectRatio(aspect: number) {
+        this.aspect = aspect;
+        this.projectionNeedsUpdate = true;
     }
 
     private calculateViewMatrix() {
-        // Calculate the camera's forward direction vector.
+        this.distance = clamp(this.distance, this.minDistance, this.maxDistance);
+
         const forward = vec3.create();
-        vec3.subtract(forward, this.target, this.position);
-        vec3.normalize(forward, forward);
+        vec3.transformQuat(forward, [0, 0, -1], this.rotation);
 
-        // Calculate the right and up vectors.
-        const right = vec3.create();
-        vec3.cross(right, this.rotation, forward); // Assuming rotation is in world space
-        vec3.normalize(right, right);
+        const position = vec3.create();
+        vec3.scaleAndAdd(position, this.position, forward, -this.distance);
 
-        const up = vec3.create();
-        vec3.cross(up, forward, right); // Assuming up vector is orthogonal to both forward and right
-        vec3.normalize(up, up);
+        mat4.lookAt(this.modelViewMatrix, position, this.position, [0, 1, 0]);
+    }
 
-        // Set the view matrix elements.
-        mat4.lookAt(this.modelViewMatrix, this.position, this.target, up);
+    public move(direction: vec3, distance: number) {
+        const movement = vec3.create();
+        vec3.transformQuat(movement, direction, this.rotation);
+        vec3.scaleAndAdd(this.position, this.position, movement, distance);
+        this.updateLocalMatrix();
     }
 }
