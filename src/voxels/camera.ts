@@ -2,7 +2,7 @@ import { mat4, vec3 } from 'gl-matrix';
 import { Transform } from './transform';
 import { clamp } from '../utils';
 
-const DEFAULT_FOV: number = 75.0;
+const DEFAULT_FOV: number = 90.0;
 const DEFAULT_ASPECT: number = (window.innerWidth / window.innerHeight);
 const DEFAULT_NEAR: number = 0.1;
 const DEFAULT_FAR: number = 1000;

@@ -27,9 +27,9 @@ input.on('mouseMove', (e: MouseEvent) => {
     }
 });
 
-// input.on('wheel', (e) => {
-//     camera.distance = Math.max(2, Math.min(1000, camera.distance + (e.deltaY * 0.05)));
-// });
+input.on('wheel', (e) => {
+    camera.distance = Math.max(2, Math.min(1000, camera.distance + (e.deltaY * 0.05)));
+});
 
 clock.run((_deltaTime: number) => {
     if (renderer.resize()) {
