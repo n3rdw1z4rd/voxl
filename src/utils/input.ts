@@ -14,17 +14,6 @@ export interface CommonEventProps {
     shiftKey: boolean,
 }
 
-export type EventTypes = (
-    'key_up' |
-    'key_down' |
-    'key_pressed' |
-    'mouse_button_down' |
-    'mouse_button_up' |
-    'mouse_button_clicked' |
-    'mouse_move' |
-    'mouse_wheel'
-);
-
 export class Input extends Emitter {
     public inputThreshold: number = 200;
     private _keyStates: { [key: string]: InputState } = {};
