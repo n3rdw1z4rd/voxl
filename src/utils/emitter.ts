@@ -3,23 +3,19 @@ export type Listener = (...args: any[]) => void;
 export class Emitter {
     private listeners: Map<string, Listener[]> = new Map<string, Listener[]>();
 
-    private static _instance: Emitter;
-    private constructor() { }
+    constructor() { }
 
-    public static get instance(): Emitter {
-        if (!Emitter._instance) {
-            Emitter._instance = new Emitter();
-        }
+    public on<T extends string[]>(...eventName: [...T, Listener]): this {
+        const listener = eventName.pop() as Listener;
+        const events: string[] = eventName.filter((ev: any) => (typeof ev === 'string')) as string[];
 
-        return Emitter._instance;
-    }
+        events.forEach((event: string) => {
+            if (!this.listeners.has(event)) {
+                this.listeners.set(event, new Array<Listener>());
+            }
 
-    public on(eventName: string, listener: Listener): this {
-        if (!this.listeners.has(eventName)) {
-            this.listeners.set(eventName, new Array<Listener>());
-        }
-
-        this.listeners.get(eventName)?.push(listener);
+            this.listeners.get(event)?.push(listener);
+        });
 
         return this;
     }
@@ -30,3 +26,5 @@ export class Emitter {
         return this;
     }
 }
+
+export const GlobalEmitter = new Emitter();
