@@ -1,5 +1,5 @@
-import '@n3rdw1z4rd/core/dist/index.css';
-import { ClockStats, KeyValue, ThreeJsBoilerPlate, VoxelGeometry } from '@n3rdw1z4rd/core';
+import './core/css/main.css';
+import { ClockStats, KeyValue, ThreeJsBoilerPlate, VoxelGeometry } from './core';
 import { Mesh, MeshLambertMaterial } from 'three';
 
 const eng = new ThreeJsBoilerPlate();//({ seed: 42 });
