@@ -1,4 +1,4 @@
-import { CreateWebGlContext, ProgramInfo } from './webgl';
+import { CreateProgramInfo, CreateWebGlContext, ProgramInfo } from './webgl';
 
 export interface RendererParams {
     canvas?: HTMLCanvasElement,
@@ -50,9 +50,7 @@ export class WebGlRenderer {
         return false;
     }
 
-    render(_deltaTime: number) {
-        if (this.programInfo) {
-
-        }
+    createProgramInfo(vertexShaderSource: string, fragmentShaderSource: string): ProgramInfo {
+        return CreateProgramInfo(this.gl, vertexShaderSource, fragmentShaderSource);
     }
 }
