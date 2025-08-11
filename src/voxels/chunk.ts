@@ -1,6 +1,8 @@
 import { vec3 } from 'gl-matrix';
-import { ProgramInfo, rng, SimplexNoise } from '../utils';
 import { VOXEL_VERTICES } from './constants';
+import { SimplexNoise } from '../utils/simplex-noise';
+import { rng } from '../utils/rng';
+import type { ProgramInfo } from '../utils/renderer';
 
 export type Color = [number, number, number, number];
 
@@ -13,17 +15,20 @@ export class Chunk {
     public static readonly SIZE = 64;
     public static readonly HEIGHT = 8;
 
+    private x: number;
+    private y: number;
+    private z: number;
+
     mesh: { vao: WebGLVertexArrayObject, indexCount: number } | null = null;
     vertexCount: number = 0; // Add vertexCount property
 
     voxels: Voxel[] = [];
 
-    constructor(
-        private x: number,
-        private y: number,
-        private z: number,
-        // private textureAtlas: WebGLTexture,
-    ) {
+    constructor(x: number, y: number, z: number) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+
         const simplex = new SimplexNoise();
         const xo = this.x * Chunk.SIZE;
         const yo = this.y * Chunk.SIZE;

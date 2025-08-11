@@ -1,9 +1,13 @@
+import { log } from "./logger";
+
 export interface GL extends WebGL2RenderingContext { }
 
-export enum ShaderType {
-    VERTEX = WebGL2RenderingContext.VERTEX_SHADER,
-    FRAGMENT = WebGL2RenderingContext.FRAGMENT_SHADER,
-}
+export const ShaderType = {
+    VERTEX: WebGL2RenderingContext.VERTEX_SHADER,
+    FRAGMENT: WebGL2RenderingContext.FRAGMENT_SHADER,
+};
+
+export type ShaderType = WebGL2RenderingContext["VERTEX_SHADER"] | WebGL2RenderingContext["FRAGMENT_SHADER"];
 
 export type ProgramLocations = { attributes: KeyValue, uniforms: KeyValue };
 export type ProgramInfo = { program: WebGLProgram, attributes: KeyValue, uniforms: KeyValue };
@@ -85,6 +89,8 @@ export class Renderer {
     }
 
     public static CompileShader(gl: GL, type: ShaderType, source: string): WebGLShader {
+        log('CompileShader type:', type);
+
         const shader: WebGLShader = gl.createShader(type)!;
 
         gl.shaderSource(shader, source);

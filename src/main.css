@@ -1,20 +1,4 @@
-:root {
-    /* Common Variables */
-    --border-width: 1px;
-    --border-radius: 4px;
-    --padding-small: 4px;
-    --padding-medium: 8px;
-    --padding-large: 16px;
-    --margin-small: 4px;
-    --margin-medium: 8px;
-    --margin-large: 16px;
-    --border-style: var(--border-width) dashed #444;
-
-    /* Transparency Levels */
-    --background-opacity-light: rgba(0, 0, 0, 0.1);
-    --background-opacity-medium: rgba(0, 0, 0, 0.5);
-    --background-opacity-dark: rgba(0, 0, 0, 0.8);
-}
+@import './reset.css';
 
 * {
     font: 14px monospace;

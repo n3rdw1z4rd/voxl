@@ -1,17 +1,22 @@
 import { mat4 } from 'gl-matrix';
-import { ProgramInfo } from '../utils';
 import { Chunk } from './chunk';
 import { Camera } from './camera';
 import { VOXEL_VERTICES } from './constants';
+import type { ProgramInfo } from '../utils/renderer';
 
 export class World {
+    private gl: WebGL2RenderingContext;
+    private programInfo: ProgramInfo;
+
     chunks: Map<string, Chunk> = new Map();
 
     constructor(
-        private gl: WebGL2RenderingContext,
-        private programInfo: ProgramInfo,
-        // private textureAtlas: WebGLTexture,
-    ) { }
+        gl: WebGL2RenderingContext,
+        programInfo: ProgramInfo,
+    ) {
+        this.gl = gl;
+        this.programInfo = programInfo;
+    }
 
     getChunkKey(x: number, y: number, z: number): string {
         return `${x}:${y}:${z}`;

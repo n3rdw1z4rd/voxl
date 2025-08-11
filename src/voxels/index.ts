@@ -1,9 +1,12 @@
 import { vec3 } from 'gl-matrix';
-import { Clock, ProgramInfo, Renderer, rng, UserInput } from '../utils';
 import { FRAGMENT_SHADER_SOURCE, VERTEX_SHADER_SOURCE } from './constants';
 import { World } from './world';
 import { Chunk } from './chunk';
 import { Camera } from './camera';
+import { rng } from '../utils/rng';
+import { Clock } from '../utils/clock';
+import { UserInput } from '../utils/user-input';
+import { Renderer, type ProgramInfo } from '../utils/renderer';
 
 const SEED: number = 42;
 const MOVE_SPEED: number = 0.1;

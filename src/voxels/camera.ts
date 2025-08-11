@@ -1,6 +1,6 @@
 import { mat4, vec3 } from 'gl-matrix';
 import { Transform } from './transform';
-import { clamp } from '../utils';
+import { clamp } from '../utils/math';
 
 const DEFAULT_FOV: number = 75.0;
 const DEFAULT_ASPECT: number = (window.innerWidth / window.innerHeight);
@@ -8,6 +8,11 @@ const DEFAULT_NEAR: number = 0.1;
 const DEFAULT_FAR: number = 1000;
 
 export class Camera extends Transform {
+    public fov: number;
+    public aspect: number;
+    public near: number;
+    public far: number;
+
     public target: vec3 = vec3.create();
     public minDistance: number = 0.1;
     public maxDistance: number = 100.0;
@@ -18,12 +23,17 @@ export class Camera extends Transform {
     private projectionNeedsUpdate: boolean = true;
 
     constructor(
-        public fov: number = DEFAULT_FOV,
-        public aspect: number = DEFAULT_ASPECT,
-        public near: number = DEFAULT_NEAR,
-        public far: number = DEFAULT_FAR,
+        fov?: number,
+        aspect?: number,
+        near?: number,
+        far?: number,
     ) {
         super();
+
+        this.fov = fov ?? DEFAULT_FOV;
+        this.aspect = aspect ?? DEFAULT_ASPECT;
+        this.near = near ?? DEFAULT_NEAR;
+        this.far = far ?? DEFAULT_FAR;
     }
 
     public update() {
