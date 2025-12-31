@@ -1,5 +1,3 @@
-import { log, logwrn } from './logger';
-
 export type ECSSystemCallback = (entity: ECSEntity, components: any) => void;
 export type ECSTickCallback = () => void;
 
@@ -52,9 +50,6 @@ export class ECS {
     public createComponent(uid: string, data: any = null): this {
         if (!this._components.has(uid)) {
             this._components.set(uid, data);
-            log('created component:', { uid, data });
-        } else {
-            logwrn('createComponent: a component already exists with uid:', uid);
         }
 
         return this;
@@ -64,9 +59,6 @@ export class ECS {
         components.forEach((component: string) => {
             if (!this._defaultComponents.includes(component)) {
                 this._defaultComponents.push(component);
-                log('includeAsDefaultComponents:', component);
-            } else {
-                log('includeAsDefaultComponents: already exists:', component);
             }
         });
 
@@ -80,9 +72,6 @@ export class ECS {
 
         if (!this._systems.has(uid)) {
             this._systems.set(uid, { components: comps, callback });
-            log('created system:', { uid, components, callback });
-        } else {
-            logwrn('createSystem: a system already exists with uid:', uid);
         }
 
         return this;
@@ -110,20 +99,13 @@ export class ECS {
                     }
 
                     comps.set(component, data);
-                } else {
-                    logwrn('createEntityWithUid: missing component:', component);
                 }
             });
 
             if (comps.size === componentList.length) {
                 const entity: ECSEntity = { uid, components: comps };
                 this._entities.set(uid, entity);
-                log('created entity:', entity);
-            } else {
-                logwrn('createEntityWithUid: failed to create an entity with missing components');
             }
-        } else {
-            logwrn('createEntityWithUid: an entity already exists with uid:', uid);
         }
 
         return this;
@@ -186,13 +168,7 @@ export class ECS {
                 };
 
                 entity.components.set(component, componentData);
-
-                log('addComponent: added component:', component, 'to entity:', uid);
-            } else {
-                logwrn('addComponent: component not found:', component);
             }
-        } else {
-            logwrn('addComponent: entity not found:', uid);
         }
 
         return this;
@@ -200,7 +176,6 @@ export class ECS {
 
     public onAllEntitiesNow(callback: (entit: ECSEntity) => void): this {
         this._entities.forEach((entity: ECSEntity) => callback(entity));
-        log('onAllEntitiesNow: executed on all entities:', callback);
 
         return this;
     }
@@ -222,10 +197,6 @@ export class ECS {
                     this._entities.set(newEntity.uid, newEntity);
                 };
             }
-
-            log('duplicateEntity: duplicated entity:', uid);
-        } else {
-            logwrn('duplicateEntity: entity not found:', uid);
         }
 
         return this;
@@ -243,14 +214,12 @@ export class ECS {
 
     public beforeTick(callback: ECSTickCallback): this {
         this._onTickStartCallbacks.push(callback);
-        log('beforeTick: added:', callback);
 
         return this;
     }
 
     public afterTick(callback: ECSTickCallback): this {
         this._onTickEndCallbacks.push(callback);
-        log('afterTick: added:', callback);
 
         return this;
     }
@@ -266,8 +235,6 @@ export class ECS {
                     system.callback(entity, Object.fromEntries(entity.components));
                 }
             });
-        } else {
-            logwrn('runSystem: system not found:', uid);
         }
 
         return this;
