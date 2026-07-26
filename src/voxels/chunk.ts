@@ -32,6 +32,7 @@ export class Chunk {
         const simplex = new SimplexNoise();
         const xo = this.x * Chunk.SIZE;
         const yo = this.y * Chunk.SIZE;
+        const zo = this.z * Chunk.SIZE;
 
         for (let x = 0; x < Chunk.SIZE; x++) {
             for (let y = 0; y < Chunk.HEIGHT; y++) {
@@ -45,7 +46,7 @@ export class Chunk {
                         1.0,
                     ];
 
-                    if (simplex.noise3d(xo + x, yo + y, this.z + z)) {
+                    if (simplex.noise3d(xo + x, yo + y, zo + z)) {
                         this.voxels.push({ position, color });
                     }
                 }
